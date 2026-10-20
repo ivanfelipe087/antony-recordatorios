@@ -27,3 +27,9 @@ Thumbs.db
 
 # Coverage
 coverage/
+
+# SQLite DB (local)
+prisma/*.db
+prisma/*.db-journal
+prisma/*.db-wal
+prisma/*.db-shm
