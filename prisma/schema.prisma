@@ -1,0 +1,53 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           BigInt     @id
+  username     String?
+  firstName    String?
+  lastName     String?
+  languageCode String     @default("es")
+  timezone     String     @default("America/Mexico_City")
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+  reminders    Reminder[]
+}
+
+model Reminder {
+  id                String          @id @default(cuid())
+  userId            BigInt
+  user              User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  text              String
+  triggerAt         DateTime
+  recurrenceId      String?
+  recurrence        Recurrence?     @relation(fields: [recurrenceId], references: [id])
+  attachmentType    String?
+  attachmentFileId  String?
+  attachmentCaption String?
+  status            String          @default("PENDING")
+  snoozedUntil      DateTime?
+  jobId             String?
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+
+  @@index([userId, status])
+  @@index([triggerAt, status])
+}
+
+model Recurrence {
+  id        String     @id @default(cuid())
+  pattern   String
+  endDate   DateTime?
+  count     Int?
+  reminders Reminder[]
+}
+
+// Nota: SQLite no soporta enums en Prisma; se usan String.
+// Valores validos para status: PENDING, SENT, SNOOZED, DONE, CANCELLED
+// Valores validos para attachmentType: PHOTO, DOCUMENT, LOCATION, CONTACT, VOICE, STICKER

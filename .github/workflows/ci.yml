@@ -1,0 +1,48 @@
+name: CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: antony
+          POSTGRES_PASSWORD: antony
+          POSTGRES_DB: antony_recordatorios_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - run: npx prisma generate
+      - run: npx prisma migrate deploy
+        env:
+          DATABASE_URL: postgresql://antony:antony@localhost:5432/antony_recordatorios_test
+      - run: npm run lint
+      - run: npm run build
+      - run: npm test
+        env:
+          DATABASE_URL: postgresql://antony:antony@localhost:5432/antony_recordatorios_test
+          REDIS_URL: redis://localhost:6379
+          BOT_TOKEN: 123456:TEST
+          NODE_ENV: test
