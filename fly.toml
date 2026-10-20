@@ -1,0 +1,24 @@
+app = "antony-recordatorios"
+primary_region = "mad"
+
+[build]
+  builder = "heroku/buildpacks:20"
+
+[env]
+  NODE_ENV = "production"
+  PORT = "3000"
+
+[http_service]
+  internal_port = 3000
+  force_https = true
+  auto_stop_machines = false
+  auto_start_machines = true
+  min_machines_running = 1
+  processes = ["app"]
+
+[[mounts]]
+  source = "antony_data"
+  destination = "/data"
+
+[processes]
+  app = "npm start"
